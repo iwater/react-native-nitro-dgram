@@ -1,0 +1,59 @@
+{
+    "name": "react-native-nitro-dgram",
+    "version": "0.1.4",
+    "description": "🚀 Ultra-high-performance Node.js dgram (UDP) implementation for React Native. Powered by Nitro Modules and a robust Rust core for maximum efficiency and low latency.",
+    "main": "./lib/index.js",
+    "module": "./lib/index.js",
+    "types": "./lib/index.d.ts",
+    "react-native": "./src/index.ts",
+    "keywords": [
+        "react-native",
+        "ios",
+        "android",
+        "nitro",
+        "udp",
+        "dgram",
+        "network",
+        "nodejs"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/iwater/react-native-nitro-dgram.git"
+    },
+    "bugs": {
+        "url": "https://github.com/iwater/react-native-nitro-dgram/issues"
+    },
+    "author": "iwater <iwater@gmail.com>",
+    "license": "ISC",
+    "scripts": {
+        "build": "npx nitrogen@0.32.0 && tsc",
+        "prepare": "npm run build",
+        "copy-clib": "rm -rf ios/Frameworks/RustCUdp.xcframework && cp -R ../rust_c_udp/target/xcframework/RustCUdp.xcframework ios/Frameworks/ && mkdir -p android/libs/arm64-v8a android/libs/armeabi-v7a android/libs/x86 android/libs/x86_64 && cp ../rust_c_udp/target/aarch64-linux-android/release/librust_c_udp.so android/libs/arm64-v8a/ && cp ../rust_c_udp/target/armv7-linux-androideabi/release/librust_c_udp.so android/libs/armeabi-v7a/ && cp ../rust_c_udp/target/i686-linux-android/release/librust_c_udp.so android/libs/x86/ && cp ../rust_c_udp/target/x86_64-linux-android/release/librust_c_udp.so android/libs/x86_64/ && cp ../rust_c_udp/include/UdpBindings.hpp cpp/",
+        "copy-clib-android": "cp ../rust_c_udp/target/aarch64-linux-android/release/librust_c_udp.so android/libs/arm64-v8a/ && cp ../rust_c_udp/target/armv7-linux-androideabi/release/librust_c_udp.so android/libs/armeabi-v7a/ && cp ../rust_c_udp/target/i686-linux-android/release/librust_c_udp.so android/libs/x86/ && cp ../rust_c_udp/target/x86_64-linux-android/release/librust_c_udp.so android/libs/x86_64/ && cp ../rust_c_udp/include/UdpBindings.hpp cpp/",
+        "copy-clib-ios": "rm -rf ios/Frameworks/RustCUdp.xcframework && cp -R ../rust_c_udp/target/xcframework/RustCUdp.xcframework ios/Frameworks/"
+    },
+    "dependencies": {
+        "eventemitter3": "^5.0.1",
+        "react-native-nitro-buffer": "^0.0.11"
+    },
+    "devDependencies": {
+        "@types/node": "*",
+        "nitrogen": "^0.32.0",
+        "react-native-nitro-modules": "^0.32.0",
+        "typescript": "^5.3.3"
+    },
+    "peerDependencies": {
+        "react-native": "*",
+        "react-native-nitro-modules": "^0.32.0"
+    },
+    "packageManager": "yarn@4.12.0",
+    "files": [
+        "lib/",
+        "src/",
+        "cpp/",
+        "ios/",
+        "android/",
+        "nitrogen/",
+        "*.podspec"
+    ]
+}

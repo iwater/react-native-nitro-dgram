@@ -1,0 +1,31 @@
+{
+    "$schema": "https://nitro.margelo.com/nitro.schema.json",
+    "cxxNamespace": [
+        "udp"
+    ],
+    "ios": {
+        "iosModuleName": "RustCUdp"
+    },
+    "android": {
+        "androidNamespace": [
+            "udp"
+        ],
+        "androidCxxLibName": "RustCUdp"
+    },
+    "autolinking": {
+        "UdpDriver": {
+            "cpp": "HybridUdpDriver"
+        }
+    },
+    "cxx": {
+        "extraIncludeDirs": [
+            "./cpp"
+        ],
+        "extraLibs": [
+            "rust_c_udp"
+        ],
+        "extraLibDirs": [
+            "./lib"
+        ]
+    }
+}
