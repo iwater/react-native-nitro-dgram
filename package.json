@@ -1,6 +1,6 @@
 {
     "name": "react-native-nitro-dgram",
-    "version": "0.1.4",
+    "version": "0.1.5",
     "description": "🚀 Ultra-high-performance Node.js dgram (UDP) implementation for React Native. Powered by Nitro Modules and a robust Rust core for maximum efficiency and low latency.",
     "main": "./lib/index.js",
     "module": "./lib/index.js",

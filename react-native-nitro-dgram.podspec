@@ -33,9 +33,7 @@ Pod::Spec.new do |s|
       "\"$(PODS_TARGET_SRCROOT)/nitrogen/generated/shared\"",
       "\"$(PODS_TARGET_SRCROOT)/nitrogen/generated/ios/c++\"",
       "\"$(PODS_TARGET_SRCROOT)/nitrogen/generated/ios\"",
-      "\"$(PODS_TARGET_SRCROOT)/cpp\"",
-      "\"$(PODS_TARGET_SRCROOT)/ios/Frameworks/RustCUdp.xcframework/ios-arm64/RustCUdp.framework/Headers\"",
-      "\"$(PODS_TARGET_SRCROOT)/ios/Frameworks/RustCUdp.xcframework/ios-arm64_x86_64-simulator/RustCUdp.framework/Headers\""
+      "\"$(PODS_TARGET_SRCROOT)/cpp\""
     ],
     "OTHER_SWIFT_FLAGS" => "-cxx-interoperability-mode=default"
   }
