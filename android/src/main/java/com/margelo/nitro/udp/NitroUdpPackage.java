@@ -14,6 +14,7 @@ public class NitroUdpPackage implements ReactPackage {
     public List<NativeModule> createNativeModules(@NonNull ReactApplicationContext reactContext) {
         // Initialize the native library
         RustCUdpOnLoad.initializeNative();
+        UdpMulticastLockManager.init(reactContext);
         return Collections.emptyList();
     }
 

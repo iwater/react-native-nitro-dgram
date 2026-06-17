@@ -1,6 +1,28 @@
 #include "HybridUdpSocketDriver.hpp"
 #include "UdpManager.hpp"
 
+#ifdef __ANDROID__
+#include <fbjni/fbjni.h>
+#include <jni.h>
+#include <android/log.h>
+
+static void jniCallMulticastLock(bool acquire) {
+  try {
+    auto env = facebook::jni::Environment::current();
+    if (env == nullptr) return;
+    jclass clazz = env->FindClass("com/margelo/nitro/udp/UdpMulticastLockManager");
+    if (clazz == nullptr) return;
+    jmethodID methodId = env->GetStaticMethodID(clazz, acquire ? "acquire" : "release", "()V");
+    if (methodId == nullptr) return;
+    env->CallStaticVoidMethod(clazz, methodId);
+  } catch (const std::exception& e) {
+    __android_log_print(ANDROID_LOG_ERROR, "NitroUdp", "Failed to call MulticastLock: %s", e.what());
+  } catch (...) {
+    __android_log_print(ANDROID_LOG_ERROR, "NitroUdp", "Failed to call MulticastLock: unknown exception");
+  }
+}
+#endif
+
 namespace margelo::nitro::udp {
 
 HybridUdpSocketDriver::HybridUdpSocketDriver() : HybridObject(TAG) {
@@ -109,6 +131,14 @@ void HybridUdpSocketDriver::close() {
     // onNativeEvent. This ensures the close event can be properly delivered to
     // JS layer.
     _id = 0;
+
+    // Clean up any remaining multicast locks for this socket
+    while (_addedMembershipsCount > 0) {
+      _addedMembershipsCount--;
+#ifdef __ANDROID__
+      jniCallMulticastLock(false);
+#endif
+    }
   }
 }
 
@@ -133,12 +163,32 @@ double HybridUdpSocketDriver::setMulticastInterface(
 double HybridUdpSocketDriver::addMembership(
     const std::string &multicastAddress,
     const std::optional<std::string> &interfaceAddress) {
-  return -1;
+  double res = static_cast<double>(::udp::udp_add_membership(
+      _id, multicastAddress.c_str(),
+      interfaceAddress.has_value() ? interfaceAddress.value().c_str() : nullptr));
+  if (res == 0) {
+    _addedMembershipsCount++;
+#ifdef __ANDROID__
+    jniCallMulticastLock(true);
+#endif
+  }
+  return res;
 }
 double HybridUdpSocketDriver::dropMembership(
     const std::string &multicastAddress,
     const std::optional<std::string> &interfaceAddress) {
-  return -1;
+  double res = static_cast<double>(::udp::udp_drop_membership(
+      _id, multicastAddress.c_str(),
+      interfaceAddress.has_value() ? interfaceAddress.value().c_str() : nullptr));
+  if (res == 0) {
+    if (_addedMembershipsCount > 0) {
+      _addedMembershipsCount--;
+#ifdef __ANDROID__
+      jniCallMulticastLock(false);
+#endif
+    }
+  }
+  return res;
 }
 
 double HybridUdpSocketDriver::addSourceSpecificMembership(

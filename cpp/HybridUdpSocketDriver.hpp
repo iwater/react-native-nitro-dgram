@@ -77,6 +77,7 @@ private:
 
   uint32_t _id;
   uint32_t _originalId; // Preserved for handler cleanup after close()
+  int _addedMembershipsCount = 0;
   std::function<void(const std::shared_ptr<ArrayBuffer> &, const std::string &,
                      double)>
       _onMessage;

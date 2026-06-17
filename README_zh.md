@@ -17,7 +17,7 @@
 
 - [x] **完整 dgram API**: 支持 `udp4` 和 `udp6`。
 - [x] **连接模式 (Connected Sockets)**: 使用 `connect()` 进行对等点专用通信。
-- [x] **多播 (Multicast)**: 完整支持加入/离开组，包括 **SSM (Source-Specific Multicast)**。
+- [x] **多播 (Multicast)**: 完整支持加入/离开组（内置 Android 端 `MulticastLock` 自动管理以防止丢包），包括 **SSM (Source-Specific Multicast)**。
 - [x] **分散-集中 I/O (Scatter-Gather)**: 通过 `send([buf1, buf2], ...)` 在单个系统调用中发送多个缓冲区。
 - [x] **队列监控**: 实时追踪待发送的字节总数和数据包数量。
 - [x] **安全性**: 集成 `BlockList` 进行 IP 级过滤。
@@ -54,6 +54,21 @@ server.bind(41234);
 ```
 
 ## 高级用法
+
+### 标准组播 (如 SSDP / DLNA)
+
+```typescript
+const socket = createSocket('udp4');
+socket.bind(1900, () => {
+  // 加入 SSDP 组播组
+  socket.addMembership('239.255.255.250');
+});
+
+// 随后离开组播并关闭
+// (Android 端的 MulticastLock 会自动进行引用计数和释放)
+socket.dropMembership('239.255.255.250');
+socket.close();
+```
 
 ### 源特定多播 (SSM)
 

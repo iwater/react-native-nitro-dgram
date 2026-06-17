@@ -18,7 +18,7 @@ Ultra-high-performance Node.js `dgram` (UDP) implementation for React Native. Po
 
 - [x] **Full dgram API**: `udp4` & `udp6` support.
 - [x] **Connected Sockets**: Using `connect()` for dedicated peer communication.
-- [x] **Multicast**: Full support for joining/dropping groups, including **SSM (Source-Specific Multicast)**.
+- [x] **Multicast**: Full support for joining/dropping groups (with automatic Android `MulticastLock` management to prevent packet drops), including **SSM (Source-Specific Multicast)**.
 - [x] **Scatter-Gather I/O**: Send multiple buffers in a single syscall via `send([buf1, buf2], ...)`.
 - [x] **Queue Monitoring**: Real-time tracking of pending send bytes and packet counts.
 - [x] **Security**: Integrated `BlockList` for IP-level filtering.
@@ -55,6 +55,21 @@ server.bind(41234);
 ```
 
 ## Advanced Usage
+
+### Standard Multicast (e.g. SSDP / DLNA)
+
+```typescript
+const socket = createSocket('udp4');
+socket.bind(1900, () => {
+  // Join SSDP multicast group
+  socket.addMembership('239.255.255.250');
+});
+
+// Later, drop membership and close
+// (Android MulticastLock is automatically managed and released)
+socket.dropMembership('239.255.255.250');
+socket.close();
+```
 
 ### Source-Specific Multicast (SSM)
 

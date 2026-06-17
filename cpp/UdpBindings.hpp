@@ -66,6 +66,10 @@ int32_t udp_get_peer_addr(uint32_t id, char *buf, uintptr_t max_len);
 
 int32_t udp_get_peer_port(uint32_t id);
 
+int32_t udp_add_membership(uint32_t id, const char *multicast_addr, const char *interface_addr);
+
+int32_t udp_drop_membership(uint32_t id, const char *multicast_addr, const char *interface_addr);
+
 int32_t udp_add_source_specific_membership(uint32_t id,
                                            const char *source_addr,
                                            const char *group_addr,
