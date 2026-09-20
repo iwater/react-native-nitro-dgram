@@ -10,13 +10,22 @@
 
 #define UM_TAG "UdpManager"
 
+// 诊断输出开关（**默认关闭**）。
+//
+// 非 Android 下这三条宏原先**无条件 `printf` 到 stdout**。而 qjs-node 的 parity 判据是
+// stdout/stderr/退出码与 Node 逐字节一致，Node 在 require('dgram') 这条路径上什么都不打
+// —— 于是任何用到 udp 的程序必然判红。**只改成 stderr 也没用**，parity 同样比对 stderr。
+// 需要排查时在编译期定义 UDPMANAGER_VERBOSE 重新打开（输出仍走 stdout，仅供本地调试）。
+#ifdef UDPMANAGER_VERBOSE
+#include <cstdio>
+#endif
+
 #ifdef __ANDROID__
 #include <android/log.h>
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, UM_TAG, __VA_ARGS__)
 #define LOGW(...) __android_log_print(ANDROID_LOG_WARN, UM_TAG, __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, UM_TAG, __VA_ARGS__)
-#else
-#include <cstdio>
+#elif defined(UDPMANAGER_VERBOSE)
 #define LOGI(...)                                                              \
   printf("[" UM_TAG "] " __VA_ARGS__);                                         \
   printf("\n")
@@ -26,6 +35,16 @@
 #define LOGE(...)                                                              \
   printf("[" UM_TAG "] ERROR: " __VA_ARGS__);                                  \
   printf("\n")
+#else
+// 默认静默。仍把参数「吃掉」，否则静默后只被日志用到的变量（本文件里的 eventName）
+// 会触发 -Wunused-but-set-variable。logSink 不产生任何输出。
+namespace margelo::nitro::udp::detail {
+template <typename... Args>
+inline void logSink(const char *, Args &&...) noexcept {}
+} // namespace margelo::nitro::udp::detail
+#define LOGI(...) ::margelo::nitro::udp::detail::logSink(__VA_ARGS__)
+#define LOGW(...) ::margelo::nitro::udp::detail::logSink(__VA_ARGS__)
+#define LOGE(...) ::margelo::nitro::udp::detail::logSink(__VA_ARGS__)
 #endif
 
 namespace margelo::nitro::udp {
