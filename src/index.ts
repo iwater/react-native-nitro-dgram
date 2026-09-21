@@ -2,6 +2,7 @@ import { EventEmitter } from 'eventemitter3'
 import { Driver } from './Driver'
 import type { UdpSocketDriver, RemoteInfo } from './Udp.nitro'
 import { Buffer } from 'react-native-nitro-buffer'
+import { LoopRef } from './loopRef'
 
 /**
  * 100% compatible with Node.js dgram module.
@@ -57,6 +58,14 @@ export interface SocketOptions {
 export class Socket extends EventEmitter {
     private _driver: UdpSocketDriver
     private _type: SocketType
+    /**
+     * Node 的 handle-ref：bound 的 dgram socket 本身就顶住事件循环（libuv 的
+     * handle ref），宿主看不见原生 handle，所以要自己登记。
+     *   · acquire 在 bind() 成功路径（含 send() 触发的自动 bind(0)）；
+     *   · release 在原生 onClose（handle 销毁）与显式 unref()；
+     * RN 上没有 __qjsHandleRef → 全部 no-op，行为与今天一致。
+     */
+    private _loopRef = new LoopRef('dgram.Socket')
     private _bound: boolean = false
     private _closed: boolean = false
     private _connected: boolean = false
@@ -122,6 +131,9 @@ export class Socket extends EventEmitter {
         }
 
         this._driver.onClose = () => {
+            // handle 销毁即 unref（Node 语义）。必须**先于** emit('close')：
+            // 'close' 回调里可能再建 handle，顺序反了会短暂误判为「还有活 handle」。
+            this._loopRef.release()
             this._closed = true
             this.emit('close')
         }
@@ -152,9 +164,15 @@ export class Socket extends EventEmitter {
         const result = this._driver.bind(port, address, ipv6Only)
 
         if (result === 0) {
+            // bound 的 socket 顶住 loop（Node：bound dgram socket 持有 handle）。
+            // 注意 send() 未 bind 时会自动 bind(0)（见 send），发送型 socket 同样
+            // 会变成 ref'd —— 与 Node 一致。
+            this._loopRef.acquire()
             this._bound = true
             setImmediate(() => this.emit('listening'))
         } else {
+            // bind 失败 = 没有 handle，不该留下 ref（否则一次失败泄漏一个 ref）
+            this._loopRef.release()
             setImmediate(() => this.emit('error', new Error(`Bind failed with code ${result}`)))
         }
 
@@ -302,9 +320,13 @@ export class Socket extends EventEmitter {
 
         // Only bound sockets have native listener, so only they receive native onClose
         if (this._bound) {
+            // 释放点在原生 onClose（见 _setupEvents）—— 这里不能提前释放，
+            // 否则 loop 会在 close 真正完成前收泵。
             this._driver.close();
         } else {
             // For unbound sockets, emit close directly since native layer won't
+            // （未 bind 就没有 acquire 过；release 是幂等的，兜一层无害）
+            this._loopRef.release();
             this._closed = true;
             setImmediate(() => this.emit('close'));
         }
@@ -395,8 +417,18 @@ export class Socket extends EventEmitter {
         return this._driver.getSendQueueSize()
     }
 
-    ref(): this { return this }
-    unref(): this { return this }
+    /**
+     * Node：`ref()` 只对仍活着的 handle 有意义 —— 对已关闭 / 从未 bind 的 socket
+     * 调 ref() 是 no-op（否则会在 close 之后重新顶住 loop，进程挂死）。
+     */
+    ref(): this {
+        if (this._bound && !this._closed) this._loopRef.acquire();
+        return this
+    }
+    unref(): this {
+        this._loopRef.release();
+        return this
+    }
 }
 
 export function createSocket(type: SocketType | SocketOptions, callback?: (msg: Buffer, rinfo: RemoteInfo) => void): Socket {
