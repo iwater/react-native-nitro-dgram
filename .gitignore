@@ -5,3 +5,9 @@ lib
 .DS_Store
 .git
 .yarn
+*.tgz
+*.log
+mac/
+rust-bundle/target/
+android/libs/
+ios/Frameworks/
