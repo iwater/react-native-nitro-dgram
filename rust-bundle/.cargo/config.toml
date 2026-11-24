@@ -1,0 +1,4 @@
+# Test threads must run serially because UDP callbacks and test event queues
+# are process-wide singletons.
+[env]
+RUST_TEST_THREADS = "1"
