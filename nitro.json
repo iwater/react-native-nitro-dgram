@@ -19,7 +19,8 @@
     },
     "cxx": {
         "extraIncludeDirs": [
-            "./cpp"
+            "./cpp",
+            "./rust-bundle/include"
         ],
         "extraLibs": [
             "rust_c_udp"

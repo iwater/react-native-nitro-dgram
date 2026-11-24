@@ -10,12 +10,11 @@
 
 #define UM_TAG "UdpManager"
 
-// 诊断输出开关（**默认关闭**）。
+// Diagnostic logging switch (disabled by default).
 //
-// 非 Android 下这三条宏原先**无条件 `printf` 到 stdout**。而 qjs-node 的 parity 判据是
-// stdout/stderr/退出码与 Node 逐字节一致，Node 在 require('dgram') 这条路径上什么都不打
-// —— 于是任何用到 udp 的程序必然判红。**只改成 stderr 也没用**，parity 同样比对 stderr。
-// 需要排查时在编译期定义 UDPMANAGER_VERBOSE 重新打开（输出仍走 stdout，仅供本地调试）。
+// On non-Android platforms these macros previously printed directly to stdout,
+// which breaks Node.js stdout/stderr parity in CLI/test hosts.
+// Define UDPMANAGER_VERBOSE at compile time to re-enable stdout logging for local debugging.
 #ifdef UDPMANAGER_VERBOSE
 #include <cstdio>
 #endif
