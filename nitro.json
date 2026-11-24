@@ -25,7 +25,10 @@
             "rust_c_udp"
         ],
         "extraLibDirs": [
-            "./lib"
+            "./mac"
         ]
-    }
+    },
+    "ignorePaths": [
+        "**/node_modules"
+    ]
 }
